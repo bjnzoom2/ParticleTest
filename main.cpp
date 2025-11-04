@@ -9,6 +9,10 @@ struct simData {
 	std::vector<Particle> particles = {};
 	std::vector<std::vector<float>> attFactorMat = { {1, 0},
 													 {0, 1} };
+
+	std::vector<glm::vec4> colors = {
+		Colors_Red, Colors_Orange
+	};
 };
 
 gl2d::Renderer2D renderer;
@@ -71,16 +75,15 @@ int main() {
 		glm::vec4 color;
 		for (unsigned int j = 0; j < 2; j++) {
 			vector[j] = rand() % 801;
-			int colorNum = rand() % 2;
+			int colorNum = rand() % data.colors.size();
 
-			if (colorNum == 0) {
-				color = Colors_Red;
-			}
-			else {
-				color = Colors_Orange;
+			for (int i = 0; i < data.colors.size(); i++) {
+				if (colorNum == i) {
+					color = data.colors[i];
+				}
 			}
 		}
-		Particle particle(vector, color);
+		Particle particle(vector, color, data.colors);
 		data.particles.push_back(particle);
 	}
 

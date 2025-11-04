@@ -2,12 +2,11 @@
 
 class Particle {
 public:
-	Particle(glm::dvec2 partPos, glm::vec4 partCol) : position(partPos), color(partCol) {
-		if (color == Colors_Red) {
-			colorID = 0;
-		}
-		else if (color == Colors_Orange) {
-			colorID = 1;
+	Particle(glm::dvec2 partPos, glm::vec4 partCol, std::vector<glm::vec4> colors) : position(partPos), color(partCol) {
+		for (int i = 0; i < colors.size(); i++) {
+			if (color == colors[i]) {
+				colorID = i;
+			}
 		}
 	};
 
