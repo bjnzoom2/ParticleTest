@@ -3,8 +3,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "gl2d.h"
+#include "particle.h"
+
+struct simData {
+	std::vector<Particle> particles = {};
+	std::vector<std::vector<float>> attFactorMat = { {1, 0},
+													 {0, 1} };
+};
 
 gl2d::Renderer2D renderer;
+simData data;
 
 unsigned int windowWidth = 800;
 unsigned int windowHeight = 800;
@@ -17,6 +25,20 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	for (int i = 0; i < data.particles.size(); i++) {
+		data.particles[i].render(renderer);
+		for (int j = 0; j < data.particles.size(); j++) {
+			if (i == j) {
+				continue;
+			}
+			data.particles[i].getForce(100, data.attFactorMat[data.particles[i].colorID][data.particles[j].colorID], data.particles[j]);
+		}
+	}
+
+	for (int i = 0; i < data.particles.size(); i++) {
+		data.particles[i].step(1, deltatime);
 	}
 
 	renderer.flush();
@@ -43,6 +65,24 @@ int main() {
 	glfwMakeContextCurrent(window);
 
 	gladLoadGL();
+
+	for (unsigned int i = 1; i < 100; i++) {
+		glm::vec2 vector;
+		glm::vec4 color;
+		for (unsigned int j = 0; j < 2; j++) {
+			vector[j] = rand() % 801;
+			int colorNum = rand() % 2;
+
+			if (colorNum == 0) {
+				color = Colors_Red;
+			}
+			else {
+				color = Colors_Orange;
+			}
+		}
+		Particle particle(vector, color);
+		data.particles.push_back(particle);
+	}
 
 	gl2d::init();
 	renderer.create();
