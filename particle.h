@@ -23,7 +23,7 @@ public:
 		renderer.renderCircleOutline(position, radius, color, 5, 200);
 	}
 
-	void getForce(float range, float attFactor, Particle otherParticle) {
+	void getForce(float range, float attFactor, Particle& otherParticle) {
 		double distance = glm::distance(position, otherParticle.position) / range;
 		glm::dvec2 direction = glm::normalize(otherParticle.position - position);
 		const float beta = 0.3;

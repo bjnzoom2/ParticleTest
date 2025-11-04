@@ -70,11 +70,17 @@ int main() {
 
 	gladLoadGL();
 
-	for (unsigned int i = 0; i < 100; i++) {
+	for (int i = 0; i < data.attFactorMat.size(); i++) {
+		for (int j = 0; j < data.attFactorMat[i].size(); j++) {
+			data.attFactorMat[i][j] = float(rand() % 201) / 100 - 1;
+		}
+	}
+
+	for (int i = 0; i < 100; i++) {
 		glm::vec2 vector;
 		glm::vec4 color;
 		int colorNum = rand() % data.colors.size();
-		for (unsigned int j = 0; j < 2; j++) {
+		for (int j = 0; j < 2; j++) {
 			vector[j] = rand() % 801;
 
 			for (int k = 0; k < data.colors.size(); k++) {
