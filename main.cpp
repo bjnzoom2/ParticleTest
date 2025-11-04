@@ -70,16 +70,16 @@ int main() {
 
 	gladLoadGL();
 
-	for (unsigned int i = 1; i < 100; i++) {
+	for (unsigned int i = 0; i < 100; i++) {
 		glm::vec2 vector;
 		glm::vec4 color;
+		int colorNum = rand() % data.colors.size();
 		for (unsigned int j = 0; j < 2; j++) {
 			vector[j] = rand() % 801;
-			int colorNum = rand() % data.colors.size();
 
-			for (int i = 0; i < data.colors.size(); i++) {
-				if (colorNum == i) {
-					color = data.colors[i];
+			for (int k = 0; k < data.colors.size(); k++) {
+				if (colorNum == k) {
+					color = data.colors[k];
 				}
 			}
 		}
