@@ -36,6 +36,19 @@ public:
 	}
 
 	void step(float fricHalfLife, float deltatime) {
+		/*if (position.x > 803) {
+			position.x = -3;
+		}
+		if (position.x < -3) {
+			position.x = 803;
+		}
+		if (position.y > 803) {
+			position.y = -3;
+		}
+		if (position.y < -3) {
+			position.y = 803;
+		}*/
+
 		velocity = std::pow(0.5, deltatime / fricHalfLife) * velocity + totalforce * (double)deltatime;
 		position += velocity * (double)deltatime;
 

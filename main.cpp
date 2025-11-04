@@ -7,11 +7,12 @@
 
 struct simData {
 	std::vector<Particle> particles = {};
-	std::vector<std::vector<float>> attFactorMat = { {1, 0},
-													 {0, 1} };
+	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0},
+													 {0, 1, 0},
+													 {0, 0, 1} };
 
 	std::vector<glm::vec4> colors = {
-		Colors_Red, Colors_Orange
+		Colors_Red, Colors_Orange, Colors_Yellow
 	};
 };
 
@@ -54,6 +55,8 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 }
 
 int main() {
+	srand(time(NULL));
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -73,7 +76,9 @@ int main() {
 	for (int i = 0; i < data.attFactorMat.size(); i++) {
 		for (int j = 0; j < data.attFactorMat[i].size(); j++) {
 			data.attFactorMat[i][j] = float(rand() % 201) / 100 - 1;
+			std::cout << data.attFactorMat[i][j] << ' ';
 		}
+		std::cout << '\n';
 	}
 
 	for (int i = 0; i < 100; i++) {
