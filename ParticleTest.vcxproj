@@ -141,11 +141,14 @@
   <ItemGroup>
     <ClCompile Include="External\glad\src\glad.c" />
     <ClCompile Include="gl2d.cpp" />
+    <ClCompile Include="grid.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="particle.cpp" />
     <ClCompile Include="stb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gl2d.h" />
+    <ClInclude Include="grid.h" />
     <ClInclude Include="particle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

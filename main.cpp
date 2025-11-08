@@ -3,24 +3,31 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "gl2d.h"
-#include "particle.h"
+#include "grid.h"
+
+unsigned int windowWidth = 800;
+unsigned int windowHeight = 800;
+unsigned int worldWidth = 80000;
+unsigned int worldHeight = 80000;
 
 struct simData {
+	int range = 100;
+	int numParticles = 1000;
+	float forcefactor = 2;
 	std::vector<Particle> particles = {};
-	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0},
-													 {0, 1, 0},
-													 {0, 0, 1} };
+	std::unique_ptr<Grid> grid;
+	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0, 0},
+													 {0, 1, 0, 0},
+													 {0, 0, 1, 0},
+													 {0, 0, 0, 1} };
 
 	std::vector<glm::vec4> colors = {
-		Colors_Red, Colors_Orange, Colors_Yellow
+		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green
 	};
 };
 
 gl2d::Renderer2D renderer;
 simData data;
-
-unsigned int windowWidth = 800;
-unsigned int windowHeight = 800;
 
 bool gameLogic(GLFWwindow* window, float deltatime) {
 	glViewport(0, 0, windowWidth, windowHeight);
@@ -34,16 +41,49 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	for (int i = 0; i < data.particles.size(); i++) {
 		data.particles[i].render(renderer);
-		for (int j = 0; j < data.particles.size(); j++) {
-			if (i == j) {
-				continue;
+	}
+
+	for (int i = 0; i < data.grid->getGrid().size(); i++) {
+		int x = i % data.grid->getGridX();
+		int y = i / data.grid->getGridX();
+
+		Cell& cell = data.grid->getGrid()[i];
+
+		for (int j = 0; j < cell.particles.size(); j++) {
+			Particle* particle = cell.particles[j];
+			for (int k = j + 1; k < cell.particles.size(); k++) {
+				particle->getForce(data.range, data.attFactorMat[particle->colorID][cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
 			}
-			data.particles[i].getForce(100, data.attFactorMat[data.particles[i].colorID][data.particles[j].colorID], data.particles[j]);
+			Cell* neighCell;
+			if (x > 0) {
+				neighCell = data.grid->getCell(x - 1, y);
+				for (int k = 0; k < neighCell->particles.size(); k++) {
+					particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+				}
+				if (y > 0) {
+					neighCell = data.grid->getCell(x - 1, y - 1);
+					for (int k = 0; k < neighCell->particles.size(); k++) {
+						particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					}
+				}
+				if (y < data.grid->getGridY() - 1) {
+					neighCell = data.grid->getCell(x - 1, y + 1);
+					for (int k = 0; k < neighCell->particles.size(); k++) {
+						particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					}
+				}
+			}
+			if (y > 0) {
+				neighCell = data.grid->getCell(x, y - 1);
+				for (int k = 0; k < neighCell->particles.size(); k++) {
+					particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+				}
+			}
 		}
 	}
 
 	for (int i = 0; i < data.particles.size(); i++) {
-		data.particles[i].step(1, deltatime);
+		data.particles[i].step(1, deltatime, data.grid.get());
 	}
 
 	renderer.flush();
@@ -73,6 +113,9 @@ int main() {
 
 	gladLoadGL();
 
+	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.range);
+	data.particles.reserve(data.numParticles);
+
 	for (int i = 0; i < data.attFactorMat.size(); i++) {
 		for (int j = 0; j < data.attFactorMat[i].size(); j++) {
 			data.attFactorMat[i][j] = float(rand() % 201) / 100 - 1;
@@ -81,21 +124,18 @@ int main() {
 		std::cout << '\n';
 	}
 
-	for (int i = 0; i < 100; i++) {
-		glm::vec2 vector;
+	for (int i = 0; i < data.numParticles; i++) {
+		glm::dvec2 vector;
 		glm::vec4 color;
 		int colorNum = rand() % data.colors.size();
 		for (int j = 0; j < 2; j++) {
 			vector[j] = rand() % 801;
-
-			for (int k = 0; k < data.colors.size(); k++) {
-				if (colorNum == k) {
-					color = data.colors[k];
-				}
-			}
 		}
-		Particle particle(vector, color, data.colors);
-		data.particles.push_back(particle);
+
+		color = data.colors[colorNum];
+
+		data.particles.emplace_back(vector, color, data.colors);
+		data.grid->addParticle(&data.particles.back());
 	}
 
 	gl2d::init();
@@ -110,6 +150,8 @@ int main() {
 		lastframe = currentframe;
 
 		gameLogic(window, deltatime);
+
+		std::cout << 1 / deltatime << '\n';
 	}
 
 	renderer.cleanup();
