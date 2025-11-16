@@ -4,16 +4,20 @@
 #include <GLFW/glfw3.h>
 #include "gl2d.h"
 #include "grid.h"
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 
 unsigned int windowWidth = 800;
 unsigned int windowHeight = 800;
-unsigned int worldWidth = 80000;
-unsigned int worldHeight = 80000;
+unsigned int worldWidth = 40000;
+unsigned int worldHeight = 40000;
 
 struct simData {
 	int range = 100;
+	int gridSize = 67;
 	int numParticles = 1000;
-	float forcefactor = 2;
+	float forcefactor = 1;
 	std::vector<Particle> particles = {};
 	std::unique_ptr<Grid> grid;
 	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0, 0},
@@ -88,6 +92,21 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	renderer.flush();
 
+	int fps = 1 / deltatime;
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Debug");
+
+	ImGui::Text("FPS: %d", fps);
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 	glfwSwapBuffers(window);
 	glfwPollEvents();
 
@@ -113,7 +132,7 @@ int main() {
 
 	gladLoadGL();
 
-	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.range);
+	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.gridSize);
 	data.particles.reserve(data.numParticles);
 
 	for (int i = 0; i < data.attFactorMat.size(); i++) {
@@ -141,6 +160,12 @@ int main() {
 	gl2d::init();
 	renderer.create();
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
 	float lastframe = 0;
 	float deltatime;
 
@@ -150,8 +175,6 @@ int main() {
 		lastframe = currentframe;
 
 		gameLogic(window, deltatime);
-
-		std::cout << 1 / deltatime << '\n';
 	}
 
 	renderer.cleanup();

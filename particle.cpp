@@ -40,7 +40,7 @@ void Particle::getForce(float range, float attFactor, Particle& otherParticle) {
 }
 
 void Particle::getForce(float attFactor, Particle& otherParticle) {
-	int gridSize = 100;
+	int gridSize = 67;
 	getForce(gridSize, attFactor, otherParticle);
 }
 
