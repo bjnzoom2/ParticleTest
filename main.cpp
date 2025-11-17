@@ -150,8 +150,8 @@ int main() {
 	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.gridSize);
 	data.particles.reserve(data.numParticles);
 
-	for (int i = 0; i < data.attFactorMat.size(); i++) {
-		for (int j = 0; j < data.attFactorMat[i].size(); j++) {
+	for (int i = 0; i < data.colors.size(); i++) {
+		for (int j = 0; j < data.colors.size(); j++) {
 			data.attFactorMat[i][j] = float(rand() % 201) / 100 - 1;
 			std::cout << data.attFactorMat[i][j] << ' ';
 		}

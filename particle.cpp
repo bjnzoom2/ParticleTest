@@ -39,11 +39,6 @@ void Particle::getForce(float range, float attFactor, Particle& otherParticle) {
 	}
 }
 
-void Particle::getForce(float attFactor, Particle& otherParticle) {
-	int gridSize = 67;
-	getForce(gridSize, attFactor, otherParticle);
-}
-
 void Particle::step(float fricHalfLife, float deltatime, Grid* grid) {
 	/*if (position.x > 803) {
 		position.x = -3;
