@@ -16,17 +16,18 @@ unsigned int worldHeight = 40000;
 struct simData {
 	int range = 100;
 	int gridSize = 67;
-	int numParticles = 1000;
-	float forcefactor = 1;
+	int numParticles = 1500;
+	float forcefactor = 0.5;
 	std::vector<Particle> particles = {};
 	std::unique_ptr<Grid> grid;
-	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0, 0},
-													 {0, 1, 0, 0},
-													 {0, 0, 1, 0},
-													 {0, 0, 0, 1} };
+	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0, 0, 0},
+													 {0, 1, 0, 0, 0},
+													 {0, 0, 1, 0, 0},
+													 {0, 0, 0, 1, 0},
+													 {0, 0, 0, 0, 1} };
 
 	std::vector<glm::vec4> colors = {
-		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green
+		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green, Colors_Blue
 	};
 };
 
@@ -41,6 +42,19 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		renderer.currentCamera.position.y -= 1200 * deltatime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		renderer.currentCamera.position.y += 1200 * deltatime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		renderer.currentCamera.position.x -= 1200 * deltatime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		renderer.currentCamera.position.x += 1200 * deltatime;
 	}
 
 	for (int i = 0; i < data.particles.size(); i++) {
@@ -101,6 +115,7 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 	ImGui::Begin("Debug");
 
 	ImGui::Text("FPS: %d", fps);
+	ImGui::SliderFloat("Zoom", &renderer.currentCamera.zoom, 0.1, 1);
 
 	ImGui::End();
 
