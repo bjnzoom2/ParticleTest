@@ -1,8 +1,8 @@
 #include "grid.h"
 
 Grid::Grid(int worldWidth, int worldHeight, int gridSize) : width(worldWidth), height(worldHeight), cellSize(gridSize) {
-	gridX = ceil(float(width / cellSize));
-	gridY = ceil(float(height / cellSize));
+	gridX = static_cast<int>(ceil(static_cast<float> (width) / static_cast<float> (cellSize)));
+	gridY = static_cast<int>(ceil(static_cast<float> (height) / static_cast<float> (cellSize)));
 
 	cells.resize(gridX * gridY);
 	for (int i = 0; i < cells.size(); i++) {
@@ -12,9 +12,9 @@ Grid::Grid(int worldWidth, int worldHeight, int gridSize) : width(worldWidth), h
 
 Cell* Grid::getCell(int x, int y) {
 	if (x < 0) x = 0;
-	if (x > gridX) x = gridX;
+	if (x > gridX - 1) x = gridX - 1;
 	if (y < 0) y = 0;
-	if (y > gridY) y = gridY;
+	if (y > gridY - 1) y = gridY - 1;
 
 	return &cells[y * gridX + x];
 }

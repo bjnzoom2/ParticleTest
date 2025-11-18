@@ -10,14 +10,14 @@
 
 unsigned int windowWidth = 800;
 unsigned int windowHeight = 800;
-unsigned int worldWidth = 80000;
-unsigned int worldHeight = 80000;
+unsigned int worldWidth = 40000;
+unsigned int worldHeight = 40000;
 
 struct simData {
-	int range = 100;
-	int gridSize = 67;
-	int numParticles = 1500;
-	float forcefactor = 1.0f;
+	int range = 200;
+	int gridSize = 133;
+	int numParticles = 5000;
+	float forcefactor = 5.0f;
 	std::vector<Particle> particles = {};
 	std::unique_ptr<Grid> grid;
 
@@ -34,7 +34,6 @@ simData data;
 bool gameLogic(GLFWwindow* window, float deltatime) {
 	glViewport(0, 0, windowWidth, windowHeight);
 	glClear(GL_COLOR_BUFFER_BIT);
-	renderer.updateWindowMetrics(windowWidth, windowHeight);
 	renderer.clearScreen({ 0.0f, 0.0f, 0.0f, 1.0f });
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -54,44 +53,49 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 		renderer.currentCamera.position.x += 1200.0f * deltatime;
 	}
 
+	int gridX = data.grid->getGridX();
+	int gridY = data.grid->getGridY();
+	std::vector<Cell> cellGrid = data.grid->getGrid();
+	int nColors = data.colors.size();
+
 	for (int i = 0; i < data.particles.size(); i++) {
 		data.particles[i].render(renderer);
 	}
 
-	for (int i = 0; i < data.grid->getGrid().size(); i++) {
-		int x = i % data.grid->getGridX();
-		int y = i / data.grid->getGridX();
+	for (int i = 0; i < cellGrid.size(); i++) {
+		int x = i % gridX;
+		int y = i / gridY;
 
-		Cell& cell = data.grid->getGrid()[i];
+		Cell& cell = cellGrid[i];
 
 		for (int j = 0; j < cell.particles.size(); j++) {
 			Particle* particle = cell.particles[j];
 			for (int k = j + 1; k < cell.particles.size(); k++) {
-				particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
+				particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
 			}
 			Cell* neighCell;
 			if (x > 0) {
 				neighCell = data.grid->getCell(x - 1, y);
 				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 				}
 				if (y > 0) {
 					neighCell = data.grid->getCell(x - 1, y - 1);
 					for (int k = 0; k < neighCell->particles.size(); k++) {
-						particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 					}
 				}
 				if (y < data.grid->getGridY() - 1) {
 					neighCell = data.grid->getCell(x - 1, y + 1);
 					for (int k = 0; k < neighCell->particles.size(); k++) {
-						particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 					}
 				}
 			}
 			if (y > 0) {
 				neighCell = data.grid->getCell(x, y - 1);
 				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 				}
 			}
 		}
@@ -157,11 +161,11 @@ int main() {
 	}
 
 	for (int i = 0; i < data.numParticles; i++) {
-		glm::vec2 vector;
-		glm::vec4 color;
+		glm::vec2 vector = {};
+		glm::vec4 color = {};
 		int colorNum = rand() % data.colors.size();
 		for (int j = 0; j < 2; j++) {
-			vector[j] = static_cast<double>(rand() % 801);
+			vector[j] = static_cast<float>(rand() % 1201) - 200.0f;
 		}
 
 		color = data.colors[colorNum];
@@ -172,6 +176,9 @@ int main() {
 
 	gl2d::init();
 	renderer.create();
+	renderer.updateWindowMetrics(windowWidth, windowHeight);
+
+	renderer.currentCamera.zoom = 0.25f;
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

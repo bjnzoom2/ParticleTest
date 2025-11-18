@@ -12,7 +12,7 @@ Particle::Particle(glm::vec2 partPos, glm::vec4 partCol, std::vector<glm::vec4> 
 
 
 void Particle::render(gl2d::Renderer2D& renderer) {
-	renderer.renderCircleOutline(position, radius, color, 1.0f, 100);
+	renderer.renderCircleOutline(position, radius, color, 0.5f, 5);
 }
 
 void Particle::getForce(float range, float attFactor, Particle& otherParticle) {
@@ -28,19 +28,6 @@ void Particle::getForce(float range, float attFactor, Particle& otherParticle) {
 }
 
 void Particle::step(float fricHalfLife, float deltatime, Grid* grid) {
-	/*if (position.x > 803) {
-		position.x = -3;
-	}
-	if (position.x < -3) {
-		position.x = 803;
-	}
-	if (position.y > 803) {
-		position.y = -3;
-	}
-	if (position.y < -3) {
-		position.y = 803;
-	}*/
-
 	velocity = sqrt(deltatime / fricHalfLife) * velocity + totalforce * deltatime;
 	position += velocity * deltatime;
 
@@ -50,5 +37,5 @@ void Particle::step(float fricHalfLife, float deltatime, Grid* grid) {
 		grid->addParticle(this, newCell);
 	}
 
-	totalforce = glm::dvec2(0);
+	totalforce = glm::vec2(0.0f);
 }
