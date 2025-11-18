@@ -157,7 +157,7 @@ int main() {
 	}
 
 	for (int i = 0; i < data.numParticles; i++) {
-		glm::dvec2 vector;
+		glm::vec2 vector;
 		glm::vec4 color;
 		int colorNum = rand() % data.colors.size();
 		for (int j = 0; j < 2; j++) {
