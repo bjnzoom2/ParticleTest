@@ -10,24 +10,21 @@
 
 unsigned int windowWidth = 800;
 unsigned int windowHeight = 800;
-unsigned int worldWidth = 40000;
-unsigned int worldHeight = 40000;
+unsigned int worldWidth = 80000;
+unsigned int worldHeight = 80000;
 
 struct simData {
 	int range = 100;
 	int gridSize = 67;
 	int numParticles = 1500;
-	float forcefactor = 0.5;
+	float forcefactor = 1.0f;
 	std::vector<Particle> particles = {};
 	std::unique_ptr<Grid> grid;
-	std::vector<std::vector<float>> attFactorMat = { {1, 0, 0, 0, 0},
-													 {0, 1, 0, 0, 0},
-													 {0, 0, 1, 0, 0},
-													 {0, 0, 0, 1, 0},
-													 {0, 0, 0, 0, 1} };
+
+	std::vector<float> attFactorMat = {};
 
 	std::vector<glm::vec4> colors = {
-		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green, Colors_Blue
+		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green, Colors_Blue, Colors_Magenta
 	};
 };
 
@@ -38,23 +35,23 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 	glViewport(0, 0, windowWidth, windowHeight);
 	glClear(GL_COLOR_BUFFER_BIT);
 	renderer.updateWindowMetrics(windowWidth, windowHeight);
-	renderer.clearScreen({ 0.0f, 0.0f, 0.0f, 0.0f });
+	renderer.clearScreen({ 0.0f, 0.0f, 0.0f, 1.0f });
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		renderer.currentCamera.position.y -= 1200 * deltatime;
+		renderer.currentCamera.position.y -= 1200.0f * deltatime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		renderer.currentCamera.position.y += 1200 * deltatime;
+		renderer.currentCamera.position.y += 1200.0f * deltatime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		renderer.currentCamera.position.x -= 1200 * deltatime;
+		renderer.currentCamera.position.x -= 1200.0f * deltatime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		renderer.currentCamera.position.x += 1200 * deltatime;
+		renderer.currentCamera.position.x += 1200.0f * deltatime;
 	}
 
 	for (int i = 0; i < data.particles.size(); i++) {
@@ -70,43 +67,43 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 		for (int j = 0; j < cell.particles.size(); j++) {
 			Particle* particle = cell.particles[j];
 			for (int k = j + 1; k < cell.particles.size(); k++) {
-				particle->getForce(data.range, data.attFactorMat[particle->colorID][cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
+				particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
 			}
 			Cell* neighCell;
 			if (x > 0) {
 				neighCell = data.grid->getCell(x - 1, y);
 				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 				}
 				if (y > 0) {
 					neighCell = data.grid->getCell(x - 1, y - 1);
 					for (int k = 0; k < neighCell->particles.size(); k++) {
-						particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 					}
 				}
 				if (y < data.grid->getGridY() - 1) {
 					neighCell = data.grid->getCell(x - 1, y + 1);
 					for (int k = 0; k < neighCell->particles.size(); k++) {
-						particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 					}
 				}
 			}
 			if (y > 0) {
 				neighCell = data.grid->getCell(x, y - 1);
 				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID][neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					particle->getForce(data.range, data.attFactorMat[particle->colorID * data.colors.size() + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 				}
 			}
 		}
 	}
 
 	for (int i = 0; i < data.particles.size(); i++) {
-		data.particles[i].step(1, deltatime, data.grid.get());
+		data.particles[i].step(1.0f, deltatime, data.grid.get());
 	}
 
 	renderer.flush();
 
-	int fps = 1 / deltatime;
+	float fps = 1.0f / deltatime;
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -114,8 +111,8 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	ImGui::Begin("Debug");
 
-	ImGui::Text("FPS: %d", fps);
-	ImGui::SliderFloat("Zoom", &renderer.currentCamera.zoom, 0.1, 1);
+	ImGui::Text("FPS: %f", fps);
+	ImGui::SliderFloat("Zoom", &renderer.currentCamera.zoom, 0.1f, 1.0f);
 
 	ImGui::End();
 
@@ -149,11 +146,12 @@ int main() {
 
 	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.gridSize);
 	data.particles.reserve(data.numParticles);
+	data.attFactorMat.resize(data.colors.size() * data.colors.size());
 
 	for (int i = 0; i < data.colors.size(); i++) {
 		for (int j = 0; j < data.colors.size(); j++) {
-			data.attFactorMat[i][j] = float(rand() % 201) / 100 - 1;
-			std::cout << data.attFactorMat[i][j] << ' ';
+			data.attFactorMat[i * data.colors.size() + j] = static_cast<float>(rand() % 201) / 100.0f - 1.0f;
+			std::cout << data.attFactorMat[i * data.colors.size() + j] << ' ';
 		}
 		std::cout << '\n';
 	}
@@ -163,7 +161,7 @@ int main() {
 		glm::vec4 color;
 		int colorNum = rand() % data.colors.size();
 		for (int j = 0; j < 2; j++) {
-			vector[j] = rand() % 801;
+			vector[j] = static_cast<double>(rand() % 801);
 		}
 
 		color = data.colors[colorNum];
@@ -181,7 +179,7 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	float lastframe = 0;
+	float lastframe = 0.0f;
 	float deltatime;
 
 	while (!glfwWindowShouldClose(window)) {

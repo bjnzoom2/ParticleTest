@@ -11,7 +11,7 @@ public:
 
 	Cell* getCell(int x, int y);
 
-	Cell* getCell(const glm::dvec2 pos);
+	Cell* getCell(const glm::vec2 pos);
 
 	void addParticle(Particle* particle);
 

@@ -6,7 +6,7 @@ Grid::Grid(int worldWidth, int worldHeight, int gridSize) : width(worldWidth), h
 
 	cells.resize(gridX * gridY);
 	for (int i = 0; i < cells.size(); i++) {
-		cells[i].particles.reserve(25);
+		cells[i].particles.reserve(20);
 	}
 }
 
@@ -19,9 +19,9 @@ Cell* Grid::getCell(int x, int y) {
 	return &cells[y * gridX + x];
 }
 
-Cell* Grid::getCell(const glm::dvec2 pos) {
-	int cellX = (int)(pos.x / cellSize);
-	int cellY = (int)(pos.y / cellSize);
+Cell* Grid::getCell(const glm::vec2 pos) {
+	int cellX = static_cast<int>(pos.x / cellSize);
+	int cellY = static_cast<int>(pos.y / cellSize);
 
 	return getCell(cellX, cellY);
 }
