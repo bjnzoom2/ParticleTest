@@ -26,13 +26,14 @@ struct simData {
 	std::vector<glm::vec4> colors = {
 		Colors_Red, Colors_Orange, Colors_Yellow, Colors_Green, Colors_Blue, Colors_Magenta
 	};
+
+	bool running = false;
 };
 
 gl2d::Renderer2D renderer;
 simData data;
 
 bool gameLogic(GLFWwindow* window, float deltatime) {
-	glViewport(0, 0, windowWidth, windowHeight);
 	glClear(GL_COLOR_BUFFER_BIT);
 	renderer.clearScreen({ 0.0f, 0.0f, 0.0f, 1.0f });
 
@@ -62,47 +63,49 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 		data.particles[i].render(renderer);
 	}
 
-	for (int i = 0; i < cellGrid.size(); i++) {
-		int x = i % gridX;
-		int y = i / gridY;
+	if (data.running) {
+		for (int i = 0; i < cellGrid.size(); i++) {
+			int x = i % gridX;
+			int y = i / gridY;
 
-		Cell& cell = cellGrid[i];
+			Cell& cell = cellGrid[i];
 
-		for (int j = 0; j < cell.particles.size(); j++) {
-			Particle* particle = cell.particles[j];
-			for (int k = j + 1; k < cell.particles.size(); k++) {
-				particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
-			}
-			Cell* neighCell;
-			if (x > 0) {
-				neighCell = data.grid->getCell(x - 1, y);
-				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+			for (int j = 0; j < cell.particles.size(); j++) {
+				Particle* particle = cell.particles[j];
+				for (int k = j + 1; k < cell.particles.size(); k++) {
+					particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + cell.particles[k]->colorID] * data.forcefactor, *cell.particles[k]);
+				}
+				Cell* neighCell;
+				if (x > 0) {
+					neighCell = data.grid->getCell(x - 1, y);
+					for (int k = 0; k < neighCell->particles.size(); k++) {
+						particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+					}
+					if (y > 0) {
+						neighCell = data.grid->getCell(x - 1, y - 1);
+						for (int k = 0; k < neighCell->particles.size(); k++) {
+							particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						}
+					}
+					if (y < data.grid->getGridY() - 1) {
+						neighCell = data.grid->getCell(x - 1, y + 1);
+						for (int k = 0; k < neighCell->particles.size(); k++) {
+							particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
+						}
+					}
 				}
 				if (y > 0) {
-					neighCell = data.grid->getCell(x - 1, y - 1);
+					neighCell = data.grid->getCell(x, y - 1);
 					for (int k = 0; k < neighCell->particles.size(); k++) {
 						particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 					}
-				}
-				if (y < data.grid->getGridY() - 1) {
-					neighCell = data.grid->getCell(x - 1, y + 1);
-					for (int k = 0; k < neighCell->particles.size(); k++) {
-						particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
-					}
-				}
-			}
-			if (y > 0) {
-				neighCell = data.grid->getCell(x, y - 1);
-				for (int k = 0; k < neighCell->particles.size(); k++) {
-					particle->getForce(data.range, data.attFactorMat[particle->colorID * nColors + neighCell->particles[k]->colorID] * data.forcefactor, *neighCell->particles[k]);
 				}
 			}
 		}
-	}
 
-	for (int i = 0; i < data.particles.size(); i++) {
-		data.particles[i].step(1.0f, deltatime, data.grid.get());
+		for (int i = 0; i < data.particles.size(); i++) {
+			data.particles[i].step(1.0f, deltatime, data.grid.get());
+		}
 	}
 
 	renderer.flush();
@@ -115,8 +118,20 @@ bool gameLogic(GLFWwindow* window, float deltatime) {
 
 	ImGui::Begin("Debug");
 
+	ImGui::Text("Particle Count: %d", data.numParticles);
 	ImGui::Text("FPS: %f", fps);
 	ImGui::SliderFloat("Zoom", &renderer.currentCamera.zoom, 0.1f, 1.0f);
+
+	if (data.running) {
+		if (ImGui::Button("Pause")) {
+			data.running = !data.running;
+		}
+	}
+	else {
+		if (ImGui::Button("Unpause")) {
+			data.running = !data.running;
+		}
+	}
 
 	ImGui::End();
 
@@ -147,6 +162,7 @@ int main() {
 	glfwMakeContextCurrent(window);
 
 	gladLoadGL();
+	glViewport(0, 0, windowWidth, windowHeight);
 
 	data.grid = std::make_unique<Grid>(worldWidth, worldHeight, data.gridSize);
 	data.particles.reserve(data.numParticles);
@@ -165,7 +181,7 @@ int main() {
 		glm::vec4 color = {};
 		int colorNum = rand() % data.colors.size();
 		for (int j = 0; j < 2; j++) {
-			vector[j] = static_cast<float>(rand() % 1201) - 200.0f;
+			vector[j] = static_cast<float>(rand() % 1401) - 400.0f;
 		}
 
 		color = data.colors[colorNum];

@@ -12,7 +12,7 @@ Particle::Particle(glm::vec2 partPos, glm::vec4 partCol, std::vector<glm::vec4> 
 
 
 void Particle::render(gl2d::Renderer2D& renderer) {
-	renderer.renderCircleOutline(position, radius, color, 0.5f, 5);
+	renderer.renderCircleOutline(position, radius, color, 0.5f, 4);
 }
 
 void Particle::getForce(float range, float attFactor, Particle& otherParticle) {
